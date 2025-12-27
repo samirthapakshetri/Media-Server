@@ -10,7 +10,7 @@ Simple Media Server from an Old Laptop.
 - [Network Topology](#network-topology)
 - [Installation](#installation)
 - [Initial System Checks](#initial-system-checks)
-- [Firewall, SSH, and Network Validation](#firewall-ssh-and-network-validation)
+- [Firewall and Network Validation](#firewall-and-network-validation)
 - [Network Setup](#network-setup)
 - [Server Configuration (Lid Behavior)](#server-configuration-lid-behavior)
 - [Storage Layout](#storage-layout)
@@ -18,15 +18,15 @@ Simple Media Server from an Old Laptop.
 - [SMB Troubleshooting](#smb-troubleshooting-what-actually-fixed-it)
 - [Jellyfin Streaming](#jellyfin-streaming)
 - [Remote Access with Tailscale](#remote-access-with-tailscale)
+- [Mobile Access](#mobile-access)
 - [Takeaways](#takeaways)
 - [Future Plans](#future-plans)
-- [Images to Add](#images-to-add)
 
 ---
 
 ## Hardware
 
-The server runs on an old Dell Vostro laptop. It's nothing fancy—just repurposed hardware that would otherwise collect dust.
+The server runs on an old Dell Vostro laptop. It's nothing fancy just repurposed hardware that would otherwise collect dust.
 
 ![Hardware Setup - Dell Vostro Laptop](images/laptops.jpg)
 
@@ -61,27 +61,21 @@ During installation:
 
 ![Setting Username and Password](images/setting%20username%20and%20password.jpg)
 
-- SSH was enabled directly from the installer
+- The installation proceeded after completing all configuration steps
 
 ![Installing Ubuntu Server](images/installing%20ubuntu.jpg)
 
 After installation completed, the system rebooted into Ubuntu Server.
 
-At this point, I unplugged the keyboard and display. From here on, the laptop was managed entirely over the network.
-
-This was the moment the laptop stopped behaving like a personal computer and started behaving like a server.
-
-![SSH Login from Main Laptop](images/sshtoserver.png)
+At this point, I unplugged the keyboard and display. From here on, the laptop was managed entirely over the network. This was the moment the laptop stopped behaving like a personal computer and started behaving like a server.
 
 ---
 
 ## Initial System Checks
 
-Once connected over SSH, the first thing I did was check for updates and bring the system fully up to date.
+Once connected to the server, the first thing I did was check for updates and bring the system fully up to date.
 
-> **[Add image here: package update output]**
->
-> Capture showing `sudo apt update && sudo apt upgrade` output.
+![Ubuntu Package Update](images/updating%20ubuntu.png)
 
 I also checked the IP address assigned to the server so I could confirm network connectivity from my main laptop.
 
@@ -89,23 +83,17 @@ I also checked the IP address assigned to the server so I could confirm network 
 
 ---
 
-## Firewall, SSH, and Network Validation
+## Firewall and Network Validation
 
 Before exposing any services, I verified the basics:
 
-- SSH service status
 - Firewall (UFW) status
 - Listening ports
+- Network connectivity
 
-SSH was confirmed running, and I could successfully connect from my main laptop using the local IP.
+UFW was checked to confirm the firewall state with appropriate rules in place.
 
-![SSH Session to Server](images/sshtoserver.png)
-
-UFW was checked to confirm the firewall state. SSH access was allowed so I wouldn't lock myself out.
-
-> **[Add image here: UFW status output]**
->
-> Capture showing `sudo ufw status` output with SSH allowed.
+![UFW Status Output](images/checking%20active%20ufw%20status.png)
 
 ---
 
@@ -119,10 +107,6 @@ The server connects wirelessly through a secondary router.
 
 The secondary router keeps server traffic isolated and reduces the risk of disrupting the main network.
 
-> **[Add image here: Wi-Fi adapter / router setup]**
->
-> Photo of the router or network adapter configuration.
-
 ---
 
 ## Server Configuration (Lid Behavior)
@@ -135,9 +119,9 @@ The configuration was changed so the screen blanks while the server continues ru
 
 This single change made the setup feel intentional rather than temporary.
 
-> **[Add image here: lid closed with server running]**
->
-> Photo of the laptop with lid closed but server still accessible via SSH.
+With the lid closed, the server continues running quietly in the background, fully accessible over the network.
+
+![Laptop with Lid Closed - Server Running](images/picture%20of%20laptop%20lid%20close.jpg)
 
 ---
 
@@ -161,6 +145,10 @@ To enable file access from my main laptop, Samba was installed and configured.
 After configuration, the server appeared like a normal shared drive on the network.
 
 ![Samba Configuration File (smb.conf)](images/smbconf.png)
+
+The Samba configuration was set to restrict access to only one specific user for security.
+
+![Samba Access Restricted to One User](images/giving%20accer%20to%20only%20one%20user%20in%20smbconfig.png)
 
 After editing configuration files, the Samba service was restarted and its status verified.
 
@@ -187,9 +175,7 @@ Samba was the most time-consuming part of the setup. Multiple "Access Denied" er
 
 Each issue on its own was small, but together they made Samba feel deceptively difficult.
 
-> **[Add image here: Samba password setup or troubleshooting terminal]**
->
-> Capture showing `sudo smbpasswd -a username` command.
+![Setting Samba Password](images/after%20editing%20samba%20putting%20password.png)
 
 ---
 
@@ -211,29 +197,61 @@ After pointing Jellyfin to the media directory and allowing it to scan, media be
 
 Even over Wi-Fi, playback was smooth on both laptop and phone. The Celeron handled the workload better than expected.
 
-> **[Add image here: Jellyfin playback screen]**
->
-> Capture showing video playback in Jellyfin.
+![Jellyfin Video Streaming](images/streaming%20in%20jellyfin.png)
 
 ---
 
 ## Remote Access with Tailscale
 
-Everything worked locally—but remote access was the next challenge.
+Everything worked locally but remote access was the next challenge.
 
 Instead of port forwarding or dynamic DNS, I chose Tailscale.
 
 Tailscale was installed, enabled, and authenticated. Once connected, the server appeared as part of a private mesh network.
 
-> **[Add image here: Tailscale status / device list]**
->
-> Capture showing `tailscale status` output or Tailscale admin console.
+![Tailscale Downloaded and Active](images/tailscale%20downlaod%20and%20active.png)
 
 Using Tailscale's MagicDNS, I could access Jellyfin from other devices on the internet as if I were at home.
 
 No open ports. No firewall gymnastics. No exposed services.
 
 ![Jellyfin Accessed Remotely via Tailscale](images/remoteaccess.png)
+
+---
+
+## Mobile Access
+
+To allow mobile access to Jellyfin, I used Tailscale's sharing feature with a shared account. This provides secure remote access while limiting functionality.
+
+**Key Setup:**
+
+The mobile device is connected through a **shared Tailscale account** that has access restricted to only port **8096** (Jellyfin's default port).
+
+![Sharing Tailscale Access](images/sharing%20tailwind.png)
+
+![Checking Shared Account Configuration](images/chekcing%20shared%20account%20homeserver%20do%20i%20share%20.png)
+
+**Access Control Lists (ACLs)** were configured to ensure the shared user can only access the Jellyfin streaming port, nothing else on the server.
+
+![Tailscale Access Control List](images/accesscorntrol%20list%20in%20tailwind.png)
+
+![Adding Port-Specific Access Control](images/adding%20new%20access%20control%20to%20give%20only%20one%20port%20to%20shared%20users.png)
+
+**Mobile Setup:**
+
+Tailscale was downloaded and set up on the mobile device.
+
+![Downloading Tailscale on Mobile](images/downloading%20tailscale%20in%20mobile.jpg)
+
+Once connected, the Jellyfin dashboard became accessible from the phone.
+
+![Mobile Login Success](images/mobile%20login%20sucess.jpg)
+
+![Mobile Dashboard](images/mobile%20dashboard.jpg)
+
+![Jellyfin Dashboard on Mobile](images/jellyfin%20dashboard%20with%20mobile.jpg)
+
+This setup allows streaming from anywhere while keeping the server secure. The shared account can only see port 8096 no file shares, no SSH, nothing else.
 
 ---
 
@@ -259,46 +277,45 @@ What started as curiosity turned into a home server that actually gets used dail
 - Move to Cloudflare Tunnels with a custom domain
 - Add monitoring and automated backups
 
-The setup will continue to evolve—but for now, it does exactly what it was built to do.
+The setup will continue to evolve but for now, it does exactly what it was built to do.
 
 ---
 
-## Images to Add
+## Currently Included Images (34 total)
 
-The following images are **suggested additions** to complete the documentation:
-
-| Section               | Image Description                                             | Suggested Filename       |
-| --------------------- | ------------------------------------------------------------- | ------------------------ |
-| Initial System Checks | Package update output (`sudo apt update && sudo apt upgrade`) | `package_update.png`     |
-| Firewall Validation   | UFW status output (`sudo ufw status`)                         | `ufw_status.png`         |
-| Network Setup         | Photo of Wi-Fi adapter or secondary router                    | `router_setup.jpg`       |
-| Lid Behavior          | Photo of laptop with lid closed while server is running       | `lid_closed_running.jpg` |
-| SMB Troubleshooting   | Terminal showing `smbpasswd` command                          | `samba_password.png`     |
-| Jellyfin Streaming    | Video playback screen in Jellyfin                             | `jellyfin_playback.png`  |
-| Tailscale             | Tailscale status command output or admin console              | `tailscale_status.png`   |
-
----
-
-## Currently Included Images (19 total)
-
-| Image File                          | Description                          | Section Used                           |
-| ----------------------------------- | ------------------------------------ | -------------------------------------- |
-| `laptops.jpg`                       | Hardware - Dell Vostro laptop        | Hardware                               |
-| `homelabdiagram.png`                | Network topology diagram             | Network Topology                       |
-| `choosing ubunutu boot .jpg`        | BIOS/boot menu with Ubuntu selected  | Installation                           |
-| `ubuntu_entire-disk.jpg`            | Disk partitioning during install     | Installation                           |
-| `wifi.jpg`                          | Wi-Fi configuration screen           | Installation                           |
-| `setting username and password.jpg` | User creation during install         | Installation                           |
-| `installing ubuntu.jpg`             | Ubuntu installation progress         | Installation                           |
-| `sshtoserver.png`                   | SSH session from main laptop         | Initial System Checks / SSH Validation |
-| `sambaipaddress.png`                | IP address output                    | Initial System Checks                  |
-| `lidconfig.png`                     | logind.conf lid behavior config      | Server Configuration                   |
-| `folderstructure.png`               | Directory structure output           | Storage Layout                         |
-| `smbconf.png`                       | Samba smb.conf configuration         | Samba Setup                            |
-| `sambaserver.png`                   | Samba service status                 | Samba Setup                            |
-| `smbdconnect.png`                   | Windows File Explorer SMB connection | Samba Setup                            |
-| `authencationpage.png`              | Jellyfin login/auth page             | Jellyfin Streaming                     |
-| `dashboardjelly.png`                | Jellyfin dashboard view              | Jellyfin Streaming                     |
-| `homejelly.png`                     | Jellyfin home page                   | Jellyfin Streaming                     |
-| `homepane.png`                      | Jellyfin home pane view              | Jellyfin Streaming                     |
-| `remoteaccess.png`                  | Jellyfin accessed via Tailscale      | Remote Access                          |
+| Image File                                                            | Description                          | Section Used          |
+| --------------------------------------------------------------------- | ------------------------------------ | --------------------- |
+| `laptops.jpg`                                                         | Hardware - Dell Vostro laptop        | Hardware              |
+| `homelabdiagram.png`                                                  | Network topology diagram             | Network Topology      |
+| `choosing ubunutu boot .jpg`                                          | BIOS/boot menu with Ubuntu selected  | Installation          |
+| `ubuntu_entire-disk.jpg`                                              | Disk partitioning during install     | Installation          |
+| `wifi.jpg`                                                            | Wi-Fi configuration screen           | Installation          |
+| `setting username and password.jpg`                                   | User creation during install         | Installation          |
+| `installing ubuntu.jpg`                                               | Ubuntu installation progress         | Installation          |
+| `updating ubuntu.png`                                                 | Package update output                | Initial System Checks |
+| `sambaipaddress.png`                                                  | IP address output                    | Initial System Checks |
+| `checking active ufw status.png`                                      | UFW firewall status                  | Firewall Validation   |
+| `lidconfig.png`                                                       | logind.conf lid behavior config      | Server Configuration  |
+| `picture of laptop lid close.jpg`                                     | Laptop with lid closed, running      | Server Configuration  |
+| `folderstructure.png`                                                 | Directory structure output           | Storage Layout        |
+| `smbconf.png`                                                         | Samba smb.conf configuration         | Samba Setup           |
+| `giving accer to only one user in smbconfig.png`                      | Samba user access restriction        | Samba Setup           |
+| `sambaserver.png`                                                     | Samba service status                 | Samba Setup           |
+| `smbdconnect.png`                                                     | Windows File Explorer SMB connection | Samba Setup           |
+| `after editing samba putting password.png`                            | Setting Samba password               | SMB Troubleshooting   |
+| `authencationpage.png`                                                | Jellyfin login/auth page             | Jellyfin Streaming    |
+| `dashboardjelly.png`                                                  | Jellyfin dashboard view              | Jellyfin Streaming    |
+| `homejelly.png`                                                       | Jellyfin home page                   | Jellyfin Streaming    |
+| `homepane.png`                                                        | Jellyfin home pane view              | Jellyfin Streaming    |
+| `streaming in jellyfin.png`                                           | Jellyfin video playback              | Jellyfin Streaming    |
+| `tailscale downlaod and active.png`                                   | Tailscale installation and status    | Remote Access         |
+| `remoteaccess.png`                                                    | Jellyfin accessed via Tailscale      | Remote Access         |
+| `sharing tailwind.png`                                                | Tailscale sharing configuration      | Mobile Access         |
+| `chekcing shared account homeserver do i share .png`                  | Shared account verification          | Mobile Access         |
+| `accesscorntrol list in tailwind.png`                                 | Tailscale ACL configuration          | Mobile Access         |
+| `adding new access control to give only one port to shared users.png` | Port-specific ACL for shared users   | Mobile Access         |
+| `downloading tailscale in mobile.jpg`                                 | Tailscale mobile app download        | Mobile Access         |
+| `mobile login sucess.jpg`                                             | Successful mobile login              | Mobile Access         |
+| `mobile dashboard.jpg`                                                | Jellyfin on mobile                   | Mobile Access         |
+| `jellyfin dashboard with mobile.jpg`                                  | Jellyfin dashboard mobile view       | Mobile Access         |
+| `sshtoserver.png`                                                     | (Not used in documentation)          | -                     |
