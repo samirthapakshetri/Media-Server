@@ -1,6 +1,17 @@
 # Media Server
 
-Simple Media Server from an Old Laptop.
+A simple home media server built from an old laptop.
+
+---
+
+## Setup Overview
+
+| Role               | Device            | Specs                       |
+| ------------------ | ----------------- | --------------------------- |
+| **Server**         | Dell Vostro (Old) | Intel Celeron 4020, 4GB RAM |
+| **Primary Laptop** | HP Victus (main)  | Intel i5 12th Gen, 16GB RAM |
+
+The old Dell Vostro now runs Ubuntu Server, hosting Jellyfin for media streaming. The primary laptop handles all administration and file transfers via Samba. Mobile access is enabled through Tailscale with restricted port access.
 
 ---
 
@@ -26,17 +37,17 @@ Simple Media Server from an Old Laptop.
 
 ## Hardware
 
-The server runs on an old Dell Vostro laptop. It's nothing fancy just repurposed hardware that would otherwise collect dust.
+The server runs on an old Dell Vostro laptop with Intel Celeron 4020 and 4GB RAM. Nothing fancy, just repurposed hardware that would otherwise collect dust.
 
-![Hardware Setup - Dell Vostro Laptop](images/laptops.jpg)
+![Hardware Setup - Dell Vostro Laptop](images/hardware_vostro.jpg)
 
 ---
 
 ## Network Topology
 
-Before diving into the setup, here's the overall network architecture showing how the media server fits into the home network.
+Here's the overall network architecture showing how the media server fits into the home network.
 
-![Home Lab Network Diagram](images/homelabdiagram.png)
+![Home Lab Network Diagram](images/network_diagram.png)
 
 ---
 
@@ -44,26 +55,26 @@ Before diving into the setup, here's the overall network architecture showing ho
 
 Before installation, I entered the BIOS, verified the boot mode, and booted from a USB installer.
 
-![Ubuntu Server Installer Boot Screen](images/choosing%20ubunutu%20boot%20.jpg)
+![Ubuntu Server Installer Boot Screen](images/ubuntu_boot.jpg)
 
 During installation:
 
 - The entire disk was wiped and reused for Ubuntu Server
 
-![Ubuntu Entire Disk Setup](images/ubuntu_entire-disk.jpg)
+![Ubuntu Entire Disk Setup](images/ubuntu_disk.jpg)
 
 - Wi-Fi was configured (Ethernet wasn't practical in my room)
 
-![Wi-Fi Configuration During Installation](images/wifi.jpg)
+![Wi-Fi Configuration](images/ubuntu_wifi.jpg)
 
 - A minimal installation was selected
 - Username and password were created
 
-![Setting Username and Password](images/setting%20username%20and%20password.jpg)
+![Setting Username and Password](images/ubuntu_user_setup.jpg)
 
 - The installation proceeded after completing all configuration steps
 
-![Installing Ubuntu Server](images/installing%20ubuntu.jpg)
+![Installing Ubuntu Server](images/ubuntu_installing.jpg)
 
 After installation completed, the system rebooted into Ubuntu Server.
 
@@ -75,11 +86,11 @@ At this point, I unplugged the keyboard and display. From here on, the laptop wa
 
 Once connected to the server, the first thing I did was check for updates and bring the system fully up to date.
 
-![Ubuntu Package Update](images/updating%20ubuntu.png)
+![Ubuntu Package Update](images/ubuntu_update.png)
 
 I also checked the IP address assigned to the server so I could confirm network connectivity from my main laptop.
 
-![IP Address Output](images/sambaipaddress.png)
+![IP Address Output](images/ip_address.png)
 
 ---
 
@@ -93,7 +104,7 @@ Before exposing any services, I verified the basics:
 
 UFW was checked to confirm the firewall state with appropriate rules in place.
 
-![UFW Status Output](images/checking%20active%20ufw%20status.png)
+![UFW Status Output](images/ufw_status.png)
 
 ---
 
@@ -115,13 +126,13 @@ Because this is still laptop hardware, power behavior needed adjustment. Closing
 
 The configuration was changed so the screen blanks while the server continues running normally.
 
-![Lid Configuration - logind.conf](images/lidconfig.png)
+![Lid Configuration - logind.conf](images/lid_config.png)
 
 This single change made the setup feel intentional rather than temporary.
 
 With the lid closed, the server continues running quietly in the background, fully accessible over the network.
 
-![Laptop with Lid Closed - Server Running](images/picture%20of%20laptop%20lid%20close.jpg)
+![Laptop with Lid Closed - Server Running](images/lid_closed.jpg)
 
 ---
 
@@ -134,7 +145,7 @@ Before deploying any services, storage was organized into a simple structure:
 
 Separating these early avoided permission issues later when services needed access to specific directories.
 
-![Folder Structure Output](images/folderstructure.png)
+![Folder Structure Output](images/folder_structure.png)
 
 ---
 
@@ -144,19 +155,19 @@ To enable file access from my main laptop, Samba was installed and configured.
 
 After configuration, the server appeared like a normal shared drive on the network.
 
-![Samba Configuration File (smb.conf)](images/smbconf.png)
+![Samba Configuration File](images/samba_conf.png)
 
 The Samba configuration was set to restrict access to only one specific user for security.
 
-![Samba Access Restricted to One User](images/giving%20accer%20to%20only%20one%20user%20in%20smbconfig.png)
+![Samba Access Restricted to One User](images/samba_user_access.png)
 
 After editing configuration files, the Samba service was restarted and its status verified.
 
-![Samba Service Running](images/sambaserver.png)
+![Samba Service Running](images/samba_service.png)
 
 From Windows File Explorer on the main laptop, I connected using the server's local IP and share name.
 
-![SMB Connected on Main Laptop](images/smbdconnect.png)
+![SMB Connected on Main Laptop](images/samba_connect.png)
 
 Only the main laptop was allowed access, keeping the share restricted.
 
@@ -175,7 +186,7 @@ Samba was the most time-consuming part of the setup. Multiple "Access Denied" er
 
 Each issue on its own was small, but together they made Samba feel deceptively difficult.
 
-![Setting Samba Password](images/after%20editing%20samba%20putting%20password.png)
+![Setting Samba Password](images/samba_password.png)
 
 ---
 
@@ -185,19 +196,19 @@ With file sharing working, Jellyfin was installed.
 
 The service was enabled, status verified, and accessed from the main laptop through a browser.
 
-![Jellyfin Authentication Page](images/authencationpage.png)
+![Jellyfin Authentication Page](images/jellyfin_auth.png)
 
-![Jellyfin Dashboard](images/dashboardjelly.png)
+![Jellyfin Dashboard](images/jellyfin_dashboard.png)
 
 After pointing Jellyfin to the media directory and allowing it to scan, media became available almost immediately.
 
-![Jellyfin Home Page](images/homejelly.png)
+![Jellyfin Home Page](images/jellyfin_home.png)
 
-![Jellyfin Home Pane View](images/homepane.png)
+![Jellyfin Home Pane View](images/jellyfin_pane.png)
 
 Even over Wi-Fi, playback was smooth on both laptop and phone. The Celeron handled the workload better than expected.
 
-![Jellyfin Video Streaming](images/streaming%20in%20jellyfin.png)
+![Jellyfin Video Streaming](images/jellyfin_streaming.png)
 
 ---
 
@@ -209,13 +220,13 @@ Instead of port forwarding or dynamic DNS, I chose Tailscale.
 
 Tailscale was installed, enabled, and authenticated. Once connected, the server appeared as part of a private mesh network.
 
-![Tailscale Downloaded and Active](images/tailscale%20downlaod%20and%20active.png)
+![Tailscale Downloaded and Active](images/tailscale_active.png)
 
 Using Tailscale's MagicDNS, I could access Jellyfin from other devices on the internet as if I were at home.
 
 No open ports. No firewall gymnastics. No exposed services.
 
-![Jellyfin Accessed Remotely via Tailscale](images/remoteaccess.png)
+![Jellyfin Accessed Remotely via Tailscale](images/remote_access.png)
 
 ---
 
@@ -223,35 +234,46 @@ No open ports. No firewall gymnastics. No exposed services.
 
 To allow mobile access to Jellyfin, I used Tailscale's sharing feature with a shared account. This provides secure remote access while limiting functionality.
 
-**Key Setup:**
+### Shared Account Setup
 
 The mobile device is connected through a **shared Tailscale account** that has access restricted to only port **8096** (Jellyfin's default port).
 
-![Sharing Tailscale Access](images/sharing%20tailwind.png)
+![Sharing Tailscale Access](images/tailscale_sharing.png)
 
-![Checking Shared Account Configuration](images/chekcing%20shared%20account%20homeserver%20do%20i%20share%20.png)
+![Checking Shared Account Configuration](images/tailscale_shared_check.png)
 
-**Access Control Lists (ACLs)** were configured to ensure the shared user can only access the Jellyfin streaming port, nothing else on the server.
+### Access Control Lists (ACLs)
 
-![Tailscale Access Control List](images/accesscorntrol%20list%20in%20tailwind.png)
+ACLs were configured to ensure the shared user can only access the Jellyfin streaming port, nothing else on the server.
 
-![Adding Port-Specific Access Control](images/adding%20new%20access%20control%20to%20give%20only%20one%20port%20to%20shared%20users.png)
+![Tailscale Access Control List](images/tailscale_acl.png)
 
-**Mobile Setup:**
+![Adding Port-Specific Access Control](images/tailscale_port_acl.png)
+
+**Understanding src and dst in ACL rules:**
+
+When giving access to only port 8096 to shared users, you need to understand how firewall rules work:
+
+- **src (Source)** is who is starting the connection (the user/mobile device)
+- **dst (Destination)** is the device receiving the connection (the Home Server)
+
+So when configuring ACLs, the Home Server is the `dst` (destination), not the `src`.
+
+### Mobile Setup
 
 Tailscale was downloaded and set up on the mobile device.
 
-![Downloading Tailscale on Mobile](images/downloading%20tailscale%20in%20mobile.jpg)
+![Downloading Tailscale on Mobile](images/tailscale_mobile_download.jpg)
 
 Once connected, the Jellyfin dashboard became accessible from the phone.
 
-![Mobile Login Success](images/mobile%20login%20sucess.jpg)
+![Mobile Login Success](images/mobile_login.jpg)
 
-![Mobile Dashboard](images/mobile%20dashboard.jpg)
+![Mobile Dashboard](images/mobile_dashboard.jpg)
 
-![Jellyfin Dashboard on Mobile](images/jellyfin%20dashboard%20with%20mobile.jpg)
+![Jellyfin Dashboard on Mobile](images/jellyfin_mobile_dashboard.jpg)
 
-This setup allows streaming from anywhere while keeping the server secure. The shared account can only see port 8096 no file shares, no SSH, nothing else.
+This setup allows streaming from anywhere while keeping the server secure. The shared account can only see port 8096, no file shares, nothing else.
 
 ---
 
@@ -278,44 +300,3 @@ What started as curiosity turned into a home server that actually gets used dail
 - Add monitoring and automated backups
 
 The setup will continue to evolve but for now, it does exactly what it was built to do.
-
----
-
-## Currently Included Images (34 total)
-
-| Image File                                                            | Description                          | Section Used          |
-| --------------------------------------------------------------------- | ------------------------------------ | --------------------- |
-| `laptops.jpg`                                                         | Hardware - Dell Vostro laptop        | Hardware              |
-| `homelabdiagram.png`                                                  | Network topology diagram             | Network Topology      |
-| `choosing ubunutu boot .jpg`                                          | BIOS/boot menu with Ubuntu selected  | Installation          |
-| `ubuntu_entire-disk.jpg`                                              | Disk partitioning during install     | Installation          |
-| `wifi.jpg`                                                            | Wi-Fi configuration screen           | Installation          |
-| `setting username and password.jpg`                                   | User creation during install         | Installation          |
-| `installing ubuntu.jpg`                                               | Ubuntu installation progress         | Installation          |
-| `updating ubuntu.png`                                                 | Package update output                | Initial System Checks |
-| `sambaipaddress.png`                                                  | IP address output                    | Initial System Checks |
-| `checking active ufw status.png`                                      | UFW firewall status                  | Firewall Validation   |
-| `lidconfig.png`                                                       | logind.conf lid behavior config      | Server Configuration  |
-| `picture of laptop lid close.jpg`                                     | Laptop with lid closed, running      | Server Configuration  |
-| `folderstructure.png`                                                 | Directory structure output           | Storage Layout        |
-| `smbconf.png`                                                         | Samba smb.conf configuration         | Samba Setup           |
-| `giving accer to only one user in smbconfig.png`                      | Samba user access restriction        | Samba Setup           |
-| `sambaserver.png`                                                     | Samba service status                 | Samba Setup           |
-| `smbdconnect.png`                                                     | Windows File Explorer SMB connection | Samba Setup           |
-| `after editing samba putting password.png`                            | Setting Samba password               | SMB Troubleshooting   |
-| `authencationpage.png`                                                | Jellyfin login/auth page             | Jellyfin Streaming    |
-| `dashboardjelly.png`                                                  | Jellyfin dashboard view              | Jellyfin Streaming    |
-| `homejelly.png`                                                       | Jellyfin home page                   | Jellyfin Streaming    |
-| `homepane.png`                                                        | Jellyfin home pane view              | Jellyfin Streaming    |
-| `streaming in jellyfin.png`                                           | Jellyfin video playback              | Jellyfin Streaming    |
-| `tailscale downlaod and active.png`                                   | Tailscale installation and status    | Remote Access         |
-| `remoteaccess.png`                                                    | Jellyfin accessed via Tailscale      | Remote Access         |
-| `sharing tailwind.png`                                                | Tailscale sharing configuration      | Mobile Access         |
-| `chekcing shared account homeserver do i share .png`                  | Shared account verification          | Mobile Access         |
-| `accesscorntrol list in tailwind.png`                                 | Tailscale ACL configuration          | Mobile Access         |
-| `adding new access control to give only one port to shared users.png` | Port-specific ACL for shared users   | Mobile Access         |
-| `downloading tailscale in mobile.jpg`                                 | Tailscale mobile app download        | Mobile Access         |
-| `mobile login sucess.jpg`                                             | Successful mobile login              | Mobile Access         |
-| `mobile dashboard.jpg`                                                | Jellyfin on mobile                   | Mobile Access         |
-| `jellyfin dashboard with mobile.jpg`                                  | Jellyfin dashboard mobile view       | Mobile Access         |
-| `sshtoserver.png`                                                     | (Not used in documentation)          | -                     |
